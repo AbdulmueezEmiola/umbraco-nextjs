@@ -1,0 +1,95 @@
+name: Deploy Umbraco App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy_cms:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore ./umbraco.app
+
+      - name: Build the project
+        run: dotnet build ./umbraco.app --configuration Release --no-restore
+
+      - name: Publish the project
+        run: dotnet publish ./umbraco.app --configuration Release --output ./publish
+
+      - name: Copy files via SSH
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
+          source: "publish/*"
+          target: "/var/www/umbraco-nextjs/umbraco"
+
+      - name: Restart Umbraco service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
+          script: |
+            sudo systemctl restart umbraco_app.service
+  deploy_nextjs:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20 # Use your project's Node.js version
+
+      # Step 3: Install dependencies and build the app
+      - name: Install dependencies and build
+        working-directory: ./nextjs.app
+        run: |
+          npm install 
+          npm run build
+          npm install  # Install only production dependencies
+
+      # Step 4: Transfer files to the DigitalOcean Droplet
+      - name: Copy files to DigitalOcean Droplet
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
+          port: 22
+          source: ./nextjs.app/* # Adjust paths as needed
+          target: /var/www
+
+      # Step 5: Restart the application on the Droplet
+      - name: Restart app on DigitalOcean
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
+          port: 22
+          script: |
+            cd /var/www/nextjs.app
+            npm install
+            if pm2 list | grep -q "nextjs-client"; then
+                pm2 reload nextjs-client # Reload if app exists
+            else
+                pm2 start ecosystem.config.js  # Start if app doesn't exist
+            fi
