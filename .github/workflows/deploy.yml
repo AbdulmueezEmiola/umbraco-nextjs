@@ -75,7 +75,7 @@ jobs:
           key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
           port: 22
           source: ./nextjs-app/* # Adjust paths as needed
-          target: /var/www/nextjs.app
+          target: /var/www/next
 
       # Step 5: Restart the application on the Droplet
       - name: Restart app on DigitalOcean
@@ -86,10 +86,6 @@ jobs:
           key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
           port: 22
           script: |
-            cd /var/www/nextjs.app
-            npm install
-            if pm2 list | grep -q "nextjs-client"; then
-                pm2 reload nextjs-client # Reload if app exists
-            else
-                pm2 start ecosystem.config.js  # Start if app doesn't exist
-            fi
+            cd /var/www/nextjs-app
+            npm install            
+            pm2 start ecosystem.config.js
