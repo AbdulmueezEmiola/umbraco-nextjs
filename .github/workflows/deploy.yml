@@ -75,7 +75,7 @@ jobs:
           key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
           port: 22
           source: ./nextjs-app/* # Adjust paths as needed
-          target: /var/www/next
+          target: /var/www
 
       # Step 5: Restart the application on the Droplet
       - name: Restart app on DigitalOcean
