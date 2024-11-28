@@ -19,13 +19,13 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Restore dependencies
-        run: dotnet restore ./umbraco.app
+        run: dotnet restore ./umbracoApp
 
       - name: Build the project
-        run: dotnet build ./umbraco.app --configuration Release --no-restore
+        run: dotnet build ./umbracoApp --configuration Release --no-restore
 
       - name: Publish the project
-        run: dotnet publish ./umbraco.app --configuration Release --output ./publish
+        run: dotnet publish ./umbracoApp --configuration Release --output ./publish
 
       - name: Copy files via SSH
         uses: appleboy/scp-action@v0.1.5
@@ -60,7 +60,7 @@ jobs:
 
       # Step 3: Install dependencies and build the app
       - name: Install dependencies and build
-        working-directory: ./nextjs.app
+        working-directory: ./nextjs-app
         run: |
           npm install 
           npm run build
@@ -74,8 +74,8 @@ jobs:
           username: root
           key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
           port: 22
-          source: ./nextjs.app/* # Adjust paths as needed
-          target: /var/www
+          source: ./nextjs-app/* # Adjust paths as needed
+          target: /var/www/nextjs.app
 
       # Step 5: Restart the application on the Droplet
       - name: Restart app on DigitalOcean
