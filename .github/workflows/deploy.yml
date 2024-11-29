@@ -43,6 +43,8 @@ jobs:
           username: root
           key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
           script: |
+            cd /var/www/umbraco-nextjs/umbraco/publish/wwwroot
+            mkdir media
             sudo systemctl restart umbraco_app.service
   deploy_nextjs:
     runs-on: ubuntu-latest
