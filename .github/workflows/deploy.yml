@@ -23,7 +23,7 @@ jobs:
           username: root
           key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
           source: umbracoApp/umbraco/Data/Umbraco.sqlite.db
-          target: "/var/www/umbraco-nextjs/umbraco/publish/umbraco/Data"
+          target: "/var/www/umbraco-nextjs/umbraco/publish/umbraco/Data/Umbraco.sqlite.db"
 
   deploy_cms:
     runs-on: ubuntu-latest
