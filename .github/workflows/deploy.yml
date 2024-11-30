@@ -6,6 +6,25 @@ on:
       - main
 
 jobs:
+  deploy_umbraco_db:
+    needs: deploy_cms
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Upload SQLite database to the server
+      - name: Deploy SQLite Database
+        uses: appleboy/scp-action@v0.1.5
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
+          source: umbracoApp/umbraco/Data/Umbraco.sqlite.db
+          target: "/var/www/umbraco-nextjs/umbraco/publish/umbraco/Data"
+
   deploy_cms:
     runs-on: ubuntu-latest
 
@@ -27,7 +46,7 @@ jobs:
       - name: Publish the project
         run: dotnet publish ./umbracoApp --configuration Release --output ./publish
 
-      - name: Copy published files via SSH
+      - name: Copy files via SSH
         uses: appleboy/scp-action@v0.1.5
         with:
           host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
@@ -36,18 +55,6 @@ jobs:
           source: "publish/*"
           target: "/var/www/umbraco-nextjs/umbraco"
 
-      - name: Move media files on the server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
-          username: root
-          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
-          script: |
-            # Ensure media folder exists
-            mkdir -p /var/www/umbraco-nextjs/umbraco/media
-            # Move media files from the publish directory
-            mv /var/www/umbraco-nextjs/umbraco/publish/wwwroot/media/* /var/www/umbraco-nextjs/umbraco/media/
-
       - name: Restart Umbraco service
         uses: appleboy/ssh-action@master
         with:
@@ -55,6 +62,8 @@ jobs:
           username: root
           key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
           script: |
+            cd /var/www/umbraco-nextjs/umbraco/publish/wwwroot
+            mkdir media
             sudo systemctl restart umbraco_app.service
   deploy_nextjs:
     runs-on: ubuntu-latest
