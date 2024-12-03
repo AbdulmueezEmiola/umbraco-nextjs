@@ -17,13 +17,14 @@ jobs:
 
       # Step 2: Upload SQLite database to the server
       - name: Deploy SQLite Database
-        uses: appleboy/scp-action@v0.1.5
+        uses: burnett01/rsync-deployments@7.0.1
         with:
-          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
-          username: root
-          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
-          source: umbracoApp/umbraco/Data/Umbraco.sqlite.db
-          target: "/var/www/umbraco-nextjs/umbraco/publish/umbraco/Data/Umbraco.sqlite.db"
+          switches: "-avz --progress"
+          path: umbracoApp/umbraco/Data/Umbraco.sqlite.db
+          remote_path: /var/www/umbraco-nextjs/umbraco/publish/umbraco/Data/
+          remote_host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
+          remote_user: root
+          remote_key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
 
   deploy_cms:
     runs-on: ubuntu-latest
