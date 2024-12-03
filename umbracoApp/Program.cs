@@ -10,7 +10,7 @@ builder.CreateUmbracoBuilder()
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost3000",
-        builder => builder.WithOrigins("http://localhost:3000", "https://stackcrawl.com")
+        builder => builder.WithOrigins("http://localhost:3000", "https://nextjs-test.stackcrawl.com")
                           .AllowAnyMethod()
                           .AllowAnyHeader());
 });
