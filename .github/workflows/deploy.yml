@@ -26,6 +26,14 @@ jobs:
           remote_user: root
           remote_key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
 
+      - name: Restart Umbraco service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DIGITAL_OCEAN_SSH_KEYS }}
+          script: |
+            sudo systemctl restart umbraco_app.service
   deploy_cms:
     runs-on: ubuntu-latest
 
